@@ -3,30 +3,48 @@ import sqlite3
 
 conexion = sqlite3.connect("pyvault.db")
 cursor = conexion.cursor()
-cursor.execute("CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, rol TEXT, hash_password TEXT NOT NULL UNIQUE)")
+cursor.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                    first_name TEXT, 
+                    last_name TEXT, 
+                    birthdate DATE, 
+                    email TEXT NOT NULL UNIQUE, 
+                    rol TEXT, 
+                    password TEXT NOT NULL)""")
 
-def cargar_usuario(cursor, rol_empleado, hash_password_empleado):
-    cursor.execute("INSERT INTO usuarios (rol, hash_password) VALUES (?, ?)", (rol_empleado, hash_password_empleado))
-    conexion.commit()
-    
-def ver_datos(cursor):
+def cargar_dato(curso, name, lastN, births, rol, email, password):
+    try:
+        curso.execute("INSERT INTO usuarios (first_name, last_name, birthdate, email, rol, password) VALUES (?, ?, ?, ?, ?, ?)", (name, lastN, births, rol, email, password))
+    except sqlite3.IntegrityError:
+        print("Correo ya utilizado/registrado \n¿Desea recuperar la contraseña?")
+
+cargar_dato(cursor, "Ivan", "Ravarotto", "2001-19-19", "Ejemplo3@2gmail.com", "Jefe", "Rava21051904124")
+conexion.commit()
+
+def buscar(cursor, email):
+    cursor.execute("SELECT * FROM usuarios WHERE email = ?", [email])
+    emailSearch = cursor.fetchone()
+    if (emailSearch != None):
+        return emailSearch
+    else:
+        return None
+
+def mostrar(cursor):
     cursor.execute("SELECT * FROM usuarios")
     return cursor.fetchall()
 
-def borrar_dato(cursor, dato):
-    
-    
-    cursor.execute("DELETE FROM usuarios (id) WHERE id = ?", dato)
-    cursor.commit()
-    
-def buscar_dato(cursor, dato):
-    cursor.execute("SELECT * FROM usuarios WHERE id = ?", (dato))
-    
-def actualizar_dato(cursor, dato, mod):
-    cursor.execute("SELECT * FROM usuarios WHERE id = ?", (dato))
+#def actualizar()
 
+def borrar(cursor, email):
+    cursor.execute("DELETE FROM usuarios WHERE email = ?", [email])
+    correo = buscar(cursor, email)
+    if correo == None:
+        print("Correo borrado con exito")
+    
+    
 
-print(ver_datos(cursor))
-borrar_dato(cursor, 3)
-print(ver_datos(cursor))
-print(buscar_dato(cursor, 4))
+print(buscar(cursor, "Ejemplo@gmail.com"))
+print(mostrar(cursor))
+print(borrar(cursor, "Ejemplo@gmail.com"))
+conexion.commit()
