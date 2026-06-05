@@ -1,5 +1,5 @@
 import sqlite3
-
+import bcrypt
 
 conexion = sqlite3.connect("pyvault.db")
 cursor = conexion.cursor()
@@ -15,11 +15,18 @@ cursor.execute("""
 
 def cargar_dato(curso, name, lastN, births, rol, email, password):
     try:
-        curso.execute("INSERT INTO usuarios (first_name, last_name, birthdate, email, rol, password) VALUES (?, ?, ?, ?, ?, ?)", (name, lastN, births, rol, email, password))
+        passwordHash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        print(passwordHash)
+        curso.execute("INSERT INTO usuarios (first_name, last_name, birthdate, email, rol, password) VALUES (?, ?, ?, ?, ?, ?)", (name, lastN, births, rol, email, passwordHash))
     except sqlite3.IntegrityError:
         print("Correo ya utilizado/registrado \n¿Desea recuperar la contraseña?")
+        
+    if (bcrypt.checkpw(password.encode('utf-8'), passwordHash)):
+        print("Contraseña correcta")
+    else:
+        print("Contraseña/Hash erroneo.")
 
-cargar_dato(cursor, "Ivan", "Ravarotto", "2001-19-19", "Ejemplo3@2gmail.com", "Jefe", "Rava21051904124")
+cargar_dato(cursor, "Ivan", "Ravarotto", "2001-19-19", "Ejemplo6@2gmail.com", "Jefe", "Palanca")
 conexion.commit()
 
 def buscar(cursor, email):
@@ -48,3 +55,16 @@ print(buscar(cursor, "Ejemplo@gmail.com"))
 print(mostrar(cursor))
 print(borrar(cursor, "Ejemplo@gmail.com"))
 conexion.commit()
+
+
+
+
+
+
+
+
+
+
+
+
+
